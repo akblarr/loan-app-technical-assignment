@@ -1,0 +1,362 @@
+openapi: 3.0.3
+info:
+  title: Online Loan Application API
+  description: |
+    API Specification for Mobile Online Loan Application. Supports authentication, document verification, loan lifecycle, installments, payments, and notifications.
+  version: 1.0.0
+servers:
+- url: https://api.fintech.com/api/v1
+tags:
+- name: Auth
+- name: Users
+- name: Documents
+- name: Loans
+- name: Installments
+- name: Payments
+- name: Notifications
+paths:
+  /auth/register:
+    post:
+      tags:
+      - Auth
+      summary: Register new user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+        required: true
+      responses:
+        "201":
+          description: Account registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterResponse"
+  /auth/login:
+    post:
+      tags:
+      - Auth
+      summary: Login user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+        required: true
+      responses:
+        "200":
+          description: Login success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+  /auth/biometric:
+    put:
+      tags:
+      - Auth
+      summary: Enable biometric login
+      responses:
+        "200":
+          description: Enabled
+      security:
+      - bearerAuth: []
+  /users/me:
+    get:
+      tags:
+      - Users
+      summary: Get user profile
+      responses:
+        "200":
+          description: user profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+      security:
+      - bearerAuth: []
+  /documents:
+    post:
+      tags:
+      - Documents
+      summary: Upload KTP and Selfie
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/DocumentUploadRequest"
+        required: true
+      responses:
+        "200":
+          description: Uploaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentUploadResponse"
+      security:
+      - bearerAuth: []
+  /documents/status:
+    get:
+      tags:
+      - Documents
+      summary: Check document verification status
+      responses:
+        "200":
+          description: Status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentStatus"
+      security:
+      - bearerAuth: []
+  /loans/eligibility:
+    get:
+      tags:
+      - Loans
+      summary: Check loan eligibility
+      responses:
+        "200":
+          description: eligibility
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoanEligibility"
+      security:
+      - bearerAuth: []
+  /loans:
+    post:
+      tags:
+      - Loans
+      summary: Apply for a loan
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoanApplyRequest"
+        required: true
+      responses:
+        "200":
+          description: Submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoanApplyResponse"
+      security:
+      - bearerAuth: []
+  /loans/current:
+    get:
+      tags:
+      - Loans
+      summary: Get current loan
+      responses:
+        "200":
+          description: Current loan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoanStatus"
+      security:
+      - bearerAuth: []
+  /installments:
+    get:
+      tags:
+      - Installments
+      summary: Get list of installments
+      responses:
+        "200":
+          description: Installments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Installment"
+      security:
+      - bearerAuth: []
+  /payments:
+    post:
+      tags:
+      - Payments
+      summary: Generate payment VA / Link
+      responses:
+        "200":
+          description: Payment generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentCreateResponse"
+      security:
+      - bearerAuth: []
+  /payments/callback:
+    post:
+      tags:
+      - Payments
+      summary: Callback from payment gateway
+      responses:
+        "200":
+          description: OK
+  /notifications:
+    get:
+      tags:
+      - Notifications
+      summary: Get notification list
+      responses:
+        "200":
+          description: list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+      security:
+      - bearerAuth: []
+components:
+  schemas:
+    RegisterRequest:
+      type: object
+      properties:
+        full_name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        password:
+          type: string
+    RegisterResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+        status:
+          type: string
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        biometric_enabled:
+          type: boolean
+    UserProfile:
+      type: object
+      properties:
+        user_id:
+          type: string
+        full_name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        status:
+          type: string
+    DocumentUploadRequest:
+      type: object
+      properties:
+        ktp_number:
+          type: string
+        ktp_image:
+          type: string
+          format: binary
+        selfie_image:
+          type: string
+          format: binary
+    DocumentUploadResponse:
+      type: object
+      properties:
+        document_id:
+          type: string
+        verified_status:
+          type: string
+    DocumentStatus:
+      type: object
+      properties:
+        verified_status:
+          type: string
+        verified_at:
+          type: string
+    LoanEligibility:
+      type: object
+      properties:
+        eligible:
+          type: boolean
+        reason:
+          type: string
+          nullable: true
+        max_amount:
+          type: number
+        max_tenor:
+          type: number
+    LoanApplyRequest:
+      type: object
+      properties:
+        requested_amount:
+          type: number
+        tenor_months:
+          type: number
+    LoanApplyResponse:
+      type: object
+      properties:
+        loan_id:
+          type: string
+        status:
+          type: string
+    LoanStatus:
+      type: object
+      properties:
+        loan_id:
+          type: string
+        status:
+          type: string
+        approved_amount:
+          type: number
+        tenor_months:
+          type: number
+        interest_rate:
+          type: number
+    Installment:
+      type: object
+      properties:
+        installment_id:
+          type: string
+        due_date:
+          type: string
+        amount:
+          type: number
+        status:
+          type: string
+    PaymentCreateResponse:
+      type: object
+      properties:
+        payment_url:
+          type: string
+        va_number:
+          type: string
+    Notification:
+      type: object
+      properties:
+        notification_id:
+          type: string
+        type:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+        created_at:
+          type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
